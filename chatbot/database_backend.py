@@ -3,7 +3,8 @@ from langchain_groq import ChatGroq
 from typing import TypedDict, Annotated, List
 from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
+import sqlite3
 
 model = ChatGroq(model="llama-3.3-70b-versatile")
 
@@ -25,7 +26,12 @@ def chat_node(state: ChatState):
     # store the response 
     return {'messages': [response]}
 
-checkpoint = MemorySaver()
+# SQLite database connection
+sqlite_conn = sqlite3.connect(database="chatbot.db", check_same_thread=False)         # as we are working on multiple threads but by defauly sqlite checks / doesnt allow to work on multiple thread
+
+# sqlite connection setup
+checkpoint = SqliteSaver(sqlite_conn)
+
 graph = StateGraph(ChatState)
 
 graph.add_node('chat_node', chat_node)
@@ -34,3 +40,11 @@ graph.add_edge(START, 'chat_node')
 graph.add_edge('chat_node', END)
 
 chatbot = graph.compile(checkpointer=checkpoint)
+
+
+def retrieve_all_threads():
+    all_threads = set()
+    for point in checkpoint.list(None):
+        threads = (point.config['configurable']['thread_id'])
+        all_threads.add(threads)
+    return list(all_threads)

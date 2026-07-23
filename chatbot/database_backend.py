@@ -5,6 +5,9 @@ from langchain_core.messages import BaseMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.sqlite import SqliteSaver
 import sqlite3
+import os
+
+os.environ["LANGCHAIN_PROJECT"] = "Multi-thread Chatbot"
 
 model = ChatGroq(model="llama-3.3-70b-versatile")
 

@@ -3,6 +3,7 @@
     Streamlit has a nature which executes the complete script from start to end after every input message
     st.session_state -> dict -> which does not resets after every input means does not execute the complete code 
     st.write_stream() -> for generating streaming response
+    Added LangSmith observability and also thread based traces
 """
 
 import streamlit as st
@@ -66,7 +67,15 @@ for message in st.session_state['message_history']:
     with st.chat_message(message['role']):
         st.text(message['content'])
 
-CONFIG = {'configurable': {'thread_id': st.session_state['thread_id']}}
+CONFIG = {
+            'configurable': {
+                'thread_id': st.session_state['thread_id']
+            },
+            'metadata': {
+                'thread_id': st.session_state['thread_id']          # logs for each unique thread id
+            },
+            'run_name': 'chat_turn'
+        }
 
 if user_input:
     st.session_state['message_history'].append({'role': 'user', 'content': user_input})
